@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "noImplicitAny": true,
+    "baseUrl": ".",
+    "outDir": "build",
+    "target": "es6",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "exclude": ["node_modules",".idea",".eslint.js",".prettier.js"]
+}

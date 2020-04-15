@@ -1,0 +1,39 @@
+{
+  "name": "keychain",
+  "version": "1.0.0",
+  "description": "Chess game",
+  "license": "MIT",
+  "main": "main.js",
+  "author": {
+    "name": "Jiří Pazdera",
+    "email": "wow.brog@gmail.com",
+    "url": "https://www.linkedin.com/in/ji%C5%99%C3%AD-pazdera-0043861a0/"
+  },
+  "scripts": {
+    "build": "tsc && yarn postbuild",
+    "postbuild": "copyfiles --flat src/index.html src/index.css package.json build",
+    "watch": "tsc -w",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "start-build": "yarn build && electron build/main.js && yarn watch",
+    "start": "electron build/main.js",
+    "copy": "copyfiles --flat src/index.html src/index.css package.json build",
+    "pack-win": "electron-packager build sachy --platform=win32 --arch=x64 --asar --executable-name=Šachy --overwrite --out=out",
+    "pack-mac": "electron-packager build sachy --platform=darwin --arch=x64 --asar --overwrite --out=out",
+    "pack-lin": "electron-packager build sachy --platform=linux --arch=x64 --asar --overwrite --out=out",
+    "pack-all": "electron-packager build sachy --all --asar --executable-name=Šachy --overwrite --out=out"
+  },
+  "devDependencies": {
+    "copyfiles": "^2.2.0",
+    "electron": "latest",
+    "electron-packager": "^14.2.1",
+    "electron-winstaller": "^4.0.0",
+    "eslint": "^6.7.2",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.19.1",
+    "prettier": "^1.19.1",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "bcrypt": "latest"
+  }
+}
