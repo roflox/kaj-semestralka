@@ -1,0 +1,204 @@
+.eye-light {
+  background-image: url(./resources/icons/eye-solid.svg);
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.slash-light {
+  /*background: url("resources/icons/eye-slash-solid.svg") no-repeat;*/
+  width: 16px;
+  height: 16px;
+  border: none;
+  display: inline-block;
+  color: grey;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+  "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#secrets li {
+  display: list-item;
+}
+
+a {
+  color: currentColor;
+  text-decoration: none;
+}
+
+nav {
+  height: 50px;
+  width: 100%;
+  background: black;
+  color: white;
+}
+
+nav ul {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 100%;
+}
+
+nav ul li {
+  user-select: none;
+}
+
+/*toto jsem si vykradl z bootstrapu*/
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  user-select: none;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  height: calc(1.5em + 0.75rem + 2px);
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.row {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+.text-muted {
+  color: #6c757d !important;
+  user-select: none;
+}
+
+.form-text {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.container {
+  width: 75%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.col-form-label {
+  padding-top: calc(0.375rem + 1px);
+  padding-bottom: calc(0.375rem + 1px);
+  margin-bottom: 0;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+/*zde konci bootstrap*/
+
+/*odsazeni mezi divy v ulu*/
+li .row div {
+  padding-right: 15px;
+}
+
+/*tooltip nad očíčkem*/
+li .row:first-child span {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+li .row div:first-child {
+  position: relative;
+  display: inline-block;
+}
+
+li .row div:first-child span::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+li .row div:first-child:hover span {
+  visibility: visible;
+  opacity: 1;
+  user-select: none;
+}
+
+li ul {
+  position: absolute;
+  width: 500px;
+  opacity: 0;
+  z-index: 10;
+  background: blue;
+  border-top: 2px solid white;
+  display: flex;
+  border-bottom-right-radius: 7px;
+  border-bottom-left-radius: 7px;
+  align-items: center;
+  justify-content: space-around;
+  height: 3rem;
+  margin-top: 2rem;
+  padding: 0.5rem;
+}

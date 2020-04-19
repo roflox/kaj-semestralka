@@ -1,7 +1,7 @@
 {
   "name": "keychain",
   "version": "1.0.0",
-  "description": "Chess game",
+  "description": "Keychain for storing secrets encrypted by AES256.",
   "license": "MIT",
   "main": "main.js",
   "author": {
@@ -11,18 +11,19 @@
   },
   "scripts": {
     "build": "tsc && yarn postbuild",
-    "postbuild": "copyfiles --flat src/index.html src/index.css package.json build",
+    "postbuild": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles -u 1 src/resources/icons/**/* build",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start-build": "yarn build && electron build/main.js && yarn watch",
     "start": "electron build/main.js",
-    "copy": "copyfiles --flat src/index.html src/index.css package.json build",
-    "pack-win": "electron-packager build sachy --platform=win32 --arch=x64 --asar --executable-name=Šachy --overwrite --out=out",
-    "pack-mac": "electron-packager build sachy --platform=darwin --arch=x64 --asar --overwrite --out=out",
-    "pack-lin": "electron-packager build sachy --platform=linux --arch=x64 --asar --overwrite --out=out",
-    "pack-all": "electron-packager build sachy --all --asar --executable-name=Šachy --overwrite --out=out"
+    "copy": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles ./node_modules/crypto-js/ && copyfiles -u 1 src/resources/icons/**/* build",
+    "pack-win": "electron-packager build keychain --platform=win32 --arch=x64 --executable-name=Keychain --overwrite --out=out",
+    "pack-mac": "electron-packager build keychain --platform=darwin --arch=x64 --overwrite --out=out",
+    "pack-lin": "electron-packager build keychain --platform=linux --arch=x64 --overwrite --out=out",
+    "pack-all": "electron-packager build keychain --all --executable-name=Keychain --overwrite --out=out"
   },
   "devDependencies": {
+    "@types/crypto-js": "latest",
     "copyfiles": "^2.2.0",
     "electron": "latest",
     "electron-packager": "^14.2.1",
@@ -34,6 +35,9 @@
     "typescript": "latest"
   },
   "dependencies": {
-    "bcrypt": "latest"
+    "bootstrap": "^4.4.1",
+    "crypto-js": "4.0.0",
+    "jquery": "^3.5.0",
+    "popper.js": "^1.16.1"
   }
 }

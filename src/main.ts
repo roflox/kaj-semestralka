@@ -1,7 +1,9 @@
-import { app, BrowserWindow, ipcMain, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
 import * as path from "path";
 import * as fs from "fs";
-import { Secret } from "./Secret";
+import { CreateSecretDTO, GetSecretDTO } from "./CreateSecretDTO";
+import { QuerySchema, GetSchema } from "./Interfaces";
+import * as crypto from "crypto-js";
 
 let mWindow: Electron.BrowserWindow; //main window
 
@@ -27,6 +29,12 @@ class Main {
     mWindow.on("closed", () => {
       mWindow = null;
     });
+    globalShortcut.register("f11", function() {
+      mWindow.webContents.toggleDevTools();
+    });
+    globalShortcut.register("f5", function() {
+      mWindow.reload();
+    });
     mWindow.maximize();
   }
 
@@ -37,28 +45,58 @@ class Main {
 
   public initDataFile() {
     // fs.writeFileSync(this.appDataFilePath, "", "utf-8");
-    fs.closeSync(fs.openSync(this.appDataFilePath, "w"));
+    fs.writeFileSync(this.appDataFilePath, JSON.stringify({ secrets: [] }));
   }
 
-  public retrieveData(): Secret[] {
+  public retrieveData(): GetSchema {
+    this.checkDirectoryAndFile();
+    try {
+      const data: QuerySchema = JSON.parse(
+        fs.readFileSync(this.appDataFilePath).toString()
+      );
+      for (const secret of data.secrets) {
+        delete secret.password;
+      }
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  private checkDirectoryAndFile() {
     if (!fs.existsSync(this.appDataPath)) {
       this.initDataDirectory();
-      return [];
     } else if (!fs.existsSync(this.appDataFilePath)) {
       this.initDataFile();
-      return [];
     } else {
       try {
-        console.log(
-          JSON.parse(fs.readFileSync(this.appDataFilePath).toString())
-        );
+        JSON.parse(fs.readFileSync(this.appDataFilePath).toString());
       } catch (e) {
-        console.log(
-          "Your data file is corrupted, try to fix it manually or delete it."
-        );
+        this.initDataFile();
       }
-      return [];
     }
+  }
+
+  public writeData(secret: CreateSecretDTO): GetSchema {
+    this.encryptSecret(secret);
+    this.checkDirectoryAndFile();
+    const json: QuerySchema = JSON.parse(
+      fs.readFileSync(this.appDataFilePath).toString()
+    );
+    json.secrets.push(secret);
+    fs.writeFileSync(this.appDataFilePath, JSON.stringify(json));
+    for (const secret of json.secrets) {
+      delete secret.password;
+    }
+    return json;
+  }
+
+  private encryptSecret(secret: CreateSecretDTO) {
+    secret.password = crypto.SHA256(secret.password).toString(crypto.enc.Hex);
+    secret.secret = crypto.AES.encrypt(
+      secret.secret,
+      secret.password
+    ).toString();
   }
 }
 
@@ -80,6 +118,10 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("test", (event, message) => {
-  main.retrieveData();
+ipcMain.on("requestData", (event, message) => {
+  event.sender.send("receiveData", main.retrieveData());
+});
+
+ipcMain.on("writeSecret", (event, secret: CreateSecretDTO) => {
+  event.sender.send("receiveData", main.writeData(secret));
 });
