@@ -1,7 +1,6 @@
 import { ipcRenderer } from "electron";
-import { CreateSecretDTO, GetSecretDTO } from "./CreateSecretDTO";
-import { GetSchema } from "./Interfaces";
-import * as path from "path";
+import { CreateSecretDTO, GetSecretDTO } from "./secret.dto";
+import { Mode, ResponseSchema } from "./interfaces";
 
 class Renderer {
   private readonly secrets: HTMLElement = document.getElementById("secrets");
@@ -24,10 +23,15 @@ class Renderer {
     "user-info-bar"
   );
   private secretValues: GetSecretDTO[] = [];
+  private mode: Mode;
 
   constructor() {
-    this.requestData();
-    ipcRenderer.on("receiveData", (event, data: GetSchema) => {
+    ipcRenderer.on("receiveProfile", (event: Event, data: ResponseSchema) => {
+      console.log("Test");
+      console.log(data);
+      this.setColorMode(data.profile.mode);
+    });
+    ipcRenderer.on("receiveData", (event: Event, data: ResponseSchema) => {
       this.secretValues = data.secrets;
       let i = 0;
       this.secrets.innerHTML = "";
@@ -39,7 +43,7 @@ class Renderer {
         const secretDiv = document.createElement("div");
         const iconButtonDiv = document.createElement("div");
         const inputDiv = document.createElement("input");
-        iconButtonDiv.classList.add("eye-light");
+        iconButtonDiv.classList.add("eye");
         inputDiv.type = "text";
         tooltip.textContent = "Display secret";
         iconButtonDiv.appendChild(tooltip);
@@ -50,17 +54,24 @@ class Renderer {
         liDiv.appendChild(nameDiv);
         liDiv.appendChild(secretDiv);
         liDiv.appendChild(inputDiv);
-        liDiv.classList.add("row");
         li.appendChild(liDiv);
+        liDiv.classList.add("row");
         li.id = `secret${i++}`;
         this.secrets.appendChild(li);
       }
     });
+    this.requestProfile();
+    this.requestData();
     this.createFormListeners();
+    this.colorModeListeners();
   }
 
   private requestData() {
     ipcRenderer.send("requestData");
+  }
+
+  private requestProfile() {
+    ipcRenderer.send("requestProfile");
   }
 
   private createFormListeners() {
@@ -96,13 +107,10 @@ class Renderer {
         .map(secret => secret.name)
         .includes(this.secretName.value.trim())
     ) {
-      this.displayMessage("Secret with this name already exists!",false);
+      this.displayMessage("Secret with this name already exists!", false);
       return false;
     } else {
-      this.displayMessage("Secret successfully saved.",true);
-      setTimeout(()=>{
-        this.hideMessage()
-      },2000);
+      this.displayMessage("Secret successfully saved.", true);
       return true;
     }
   }
@@ -131,6 +139,9 @@ class Renderer {
       this.userInfoBar.classList.remove("alert-success");
     }
     this.userInfoBar.innerText = message;
+    setTimeout(() => {
+      this.hideMessage();
+    }, 5000);
   }
 
   private writeSecret(secret: CreateSecretDTO) {
@@ -139,6 +150,31 @@ class Renderer {
 
   private hideMessage() {
     this.userInfoBar.style.display = "none";
+  }
+
+  private colorModeListeners() {
+    const listener = (event: Event) => {
+      const element: HTMLElement = event.target as HTMLElement;
+      if (element.id === "dark") {
+        this.setColorMode(Mode.dark);
+      } else {
+        this.setColorMode(Mode.light);
+      }
+      ipcRenderer.send("theme", { mode: element.id });
+    };
+    document.getElementById("light").addEventListener("click", listener);
+    document.getElementById("dark").addEventListener("click", listener);
+  }
+
+  private setColorMode(mode: Mode) {
+    document
+      .getElementsByTagName("body")
+      .item(0)
+      .classList.remove("light", "dark");
+    document
+      .getElementsByTagName("body")
+      .item(0)
+      .classList.add(mode);
   }
 }
 
