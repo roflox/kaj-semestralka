@@ -1,6 +1,11 @@
 import { ipcRenderer } from "electron";
 import { CreateSecretDTO, GetSecretDTO } from "./secret.dto";
-import { Mode, ResponseSchema } from "./interfaces";
+import {
+  Mode,
+  ResponseSchema,
+  RevealSecretRequest,
+  RevealSecretResponse
+} from "./interfaces";
 
 class Renderer {
   private readonly secrets: HTMLElement = document.getElementById("secrets");
@@ -23,7 +28,6 @@ class Renderer {
     "user-info-bar"
   );
   private secretValues: GetSecretDTO[] = [];
-  private mode: Mode;
 
   private eyeListener = (event: Event) => {
     const target =
@@ -31,12 +35,46 @@ class Renderer {
         ? (event.target as HTMLElement).parentElement
         : (event.target as HTMLElement);
     const parent = target.parentElement.parentElement;
-    if(target.classList.contains("eye-slash")){ // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
-      target.classList.replace("eye-slash","eye");
+    if (target.classList.contains("eye-slash")) {
+      // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
+      target.classList.replace("eye-slash", "eye");
       parent.getElementsByTagName("input").item(0).style.display = "none";
-    }else {
-      target.classList.replace("eye","eye-slash");
+      parent.getElementsByTagName("button").item(0).style.display = "none";
+      const divs = parent.getElementsByTagName("div");
+      divs.item(3).innerText = divs.item(4).innerText;
+    } else {
+      target.classList.replace("eye", "eye-slash");
       parent.getElementsByTagName("input").item(0).style.display = "block";
+      parent.getElementsByTagName("button").item(0).style.display = "block";
+      // const divs = parent.getElementsByTagName("div");
+      // divs.item(3).innerText = "odhalene heslo";
+    }
+  };
+
+  private submitRevealListener = (event: Event) => {
+    const target = event.target as HTMLButtonElement;
+    const parent = target.parentElement.parentElement;
+    const password = parent.getElementsByTagName("input").item(0).value;
+    if (password.trim().length < 8) {
+      this.displayMessage("Password is incorrect.", false);
+    } else {
+      ipcRenderer.send("revealSecret", {
+        id: parseInt(parent.id.substring(6, parent.id.length)),
+        password: password
+      } as RevealSecretRequest);
+    }
+  };
+
+  private revealSecret = (event: Event, secret: RevealSecretResponse) => {
+    if (!secret.correct) {
+      this.displayMessage("Password is incorrect.", false);
+    } else {
+      // console.log(document.getElementById(`secret${secret.id}`));
+      const secretDiv = document.getElementById(`secret${secret.id}`);
+      secretDiv.getElementsByTagName("input").item(0).style.display = "none";
+      secretDiv.getElementsByTagName("input").item(0).value = "";
+      secretDiv.getElementsByTagName("button").item(0).style.display = "none";
+      secretDiv.getElementsByTagName("div").item(3).innerText = secret.secret;
     }
   };
 
@@ -44,34 +82,51 @@ class Renderer {
     this.setColorMode(localStorage.getItem("theme") as Mode);
     ipcRenderer.on("receiveData", (event: Event, data: ResponseSchema) => {
       this.secretValues = data.secrets;
-      let i = 0;
       this.secrets.innerHTML = "";
       for (const secret of this.secretValues) {
         const li = document.createElement("li");
-        const tooltip = document.createElement("span");
         const liDiv = document.createElement("div");
         const nameDiv = document.createElement("div");
         const secretDiv = document.createElement("div");
+        const tmpDiv = document.createElement("div");
+        tmpDiv.style.display = "none";
+        tmpDiv.innerText = secret.secret;
+
+        //button
+        const button = document.createElement("button") as HTMLButtonElement;
+        button.innerText = "Submit Password";
+        button.style.display = "none";
+        button.addEventListener("click", this.submitRevealListener);
+
+        //input
+        const input = document.createElement("input") as HTMLInputElement;
+        input.placeholder = "Password";
+        input.type = "password";
+        input.style.display = "none";
+
+        //iconButton + tooltip
+        const tooltip = document.createElement("span");
         const iconButtonDiv = document.createElement("div");
-        const inputDiv = document.createElement("input");
         iconButtonDiv.classList.add("eye");
-        inputDiv.type = "text";
-        tooltip.textContent = "Display secret";
         iconButtonDiv.appendChild(tooltip);
-        inputDiv.style.display = "none";
+        iconButtonDiv.addEventListener("click", this.eyeListener);
+        tooltip.textContent = "Display secret";
+
         nameDiv.innerText = secret.name;
         secretDiv.innerText = secret.secret;
-        iconButtonDiv.addEventListener("click", this.eyeListener);
         liDiv.appendChild(iconButtonDiv);
         liDiv.appendChild(nameDiv);
         liDiv.appendChild(secretDiv);
-        liDiv.appendChild(inputDiv);
-        li.appendChild(liDiv);
+        liDiv.appendChild(input);
+        liDiv.appendChild(button);
+        liDiv.appendChild(tmpDiv);
         liDiv.classList.add("row");
-        li.id = `secret${i++}`;
+        li.appendChild(liDiv);
+        li.id = `secret${secret.id}`;
         this.secrets.appendChild(li);
       }
     });
+    ipcRenderer.on("revealSecret", this.revealSecret);
     this.requestProfile();
     this.requestData();
     this.createFormListeners();
@@ -151,9 +206,9 @@ class Renderer {
       this.userInfoBar.classList.remove("alert-success");
     }
     this.userInfoBar.innerText = message;
-    setTimeout(() => {
-      this.hideMessage();
-    }, 5000);
+    // setTimeout(() => {
+    //   this.hideMessage();
+    // }, 5000);
   }
 
   private writeSecret(secret: CreateSecretDTO) {

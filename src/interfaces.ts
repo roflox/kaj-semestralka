@@ -11,3 +11,14 @@ export interface RequestSchema {
 export interface ResponseSchema {
   secrets?: GetSecretDTO[];
 }
+
+export interface RevealSecretRequest {
+  password: string,
+  id: number,
+}
+
+export interface RevealSecretResponse {
+  id: number,
+  correct: boolean,
+  secret: string;
+}

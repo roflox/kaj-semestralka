@@ -1,8 +1,13 @@
 import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
 import * as path from "path";
 import * as fs from "fs";
-import { CreateSecretDTO } from "./secret.dto";
-import {RequestSchema, ResponseSchema } from "./interfaces";
+import { CreateSecretDTO, GetSecretDTO } from "./secret.dto";
+import {
+  RequestSchema,
+  ResponseSchema,
+  RevealSecretRequest,
+  RevealSecretResponse
+} from "./interfaces";
 import * as crypto from "crypto-js";
 
 let mWindow: Electron.BrowserWindow; //main window
@@ -47,14 +52,16 @@ class Main {
     fs.writeFileSync(this.appDataFilePath, JSON.stringify({ secrets: [] }));
   }
 
-  public retrieveData(): ResponseSchema {
+  public retrieveData(full?: boolean): ResponseSchema {
     this.checkDirectoryAndFiles();
     try {
       const data: RequestSchema = JSON.parse(
         fs.readFileSync(this.appDataFilePath).toString()
       );
-      for (const secret of data.secrets) {
-        delete secret.password;
+      if (!full) {
+        for (const secret of data.secrets) {
+          delete secret.password;
+        }
       }
       return data;
     } catch (e) {
@@ -76,7 +83,9 @@ class Main {
       try {
         JSON.parse(fs.readFileSync(this.appDataFilePath).toString());
       } catch (e) {
-        console.error(`File: ${this.appDataFilePath} is broken, try to fix it or delete it`);
+        console.error(
+          `File: ${this.appDataFilePath} is broken, try to fix it or delete it`
+        );
       }
     }
   }
@@ -87,6 +96,7 @@ class Main {
     const json: RequestSchema = JSON.parse(
       fs.readFileSync(this.appDataFilePath).toString()
     );
+    secret.id = json.secrets.length;
     json.secrets.push(secret);
     fs.writeFileSync(this.appDataFilePath, JSON.stringify(json));
     for (const secret of json.secrets) {
@@ -101,6 +111,31 @@ class Main {
       secret.secret,
       secret.password
     ).toString();
+  }
+
+  private decryptSecret(secret: CreateSecretDTO, password: string) {
+    const tmp = crypto.SHA256(password).toString(crypto.enc.Hex);
+    if(tmp!==secret.password) {
+      return null;
+    }
+    return crypto.AES.decrypt(secret.secret,tmp,).toString(crypto.enc.Utf8);
+  }
+
+  public revealSecret(
+    secretRequest: RevealSecretRequest
+  ): RevealSecretResponse {
+    const data = this.retrieveData(true);
+    const secret = data.secrets.find(secret => {
+      if (secret.id === secretRequest.id) {
+        return secret;
+      }
+    }) as CreateSecretDTO;
+    const decrypted = this.decryptSecret(secret, secretRequest.password);
+    console.log(decrypted);
+    if(!decrypted){
+      return {id:secret.id,secret:null,correct:false}
+    }
+    return {id:secret.id,secret:decrypted,correct:true};
   }
 }
 
@@ -128,4 +163,8 @@ ipcMain.on("requestData", event => {
 
 ipcMain.on("writeSecret", (event, secret: CreateSecretDTO) => {
   event.sender.send("receiveData", main.writeData(secret));
+});
+
+ipcMain.on("revealSecret", (event, secretRequest: RevealSecretRequest) => {
+  event.sender.send("revealSecret", main.revealSecret(secretRequest));
 });
