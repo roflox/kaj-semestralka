@@ -25,12 +25,23 @@ class Renderer {
   private secretValues: GetSecretDTO[] = [];
   private mode: Mode;
 
+  private eyeListener = (event: Event) => {
+    const target =
+      (event.target as HTMLElement).tagName.toLowerCase() === "span"
+        ? (event.target as HTMLElement).parentElement
+        : (event.target as HTMLElement);
+    const parent = target.parentElement.parentElement;
+    if(target.classList.contains("eye-slash")){ // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
+      target.classList.replace("eye-slash","eye");
+      parent.getElementsByTagName("input").item(0).style.display = "none";
+    }else {
+      target.classList.replace("eye","eye-slash");
+      parent.getElementsByTagName("input").item(0).style.display = "block";
+    }
+  };
+
   constructor() {
-    ipcRenderer.on("receiveProfile", (event: Event, data: ResponseSchema) => {
-      console.log("Test");
-      console.log(data);
-      this.setColorMode(data.profile.mode);
-    });
+    this.setColorMode(localStorage.getItem("theme") as Mode);
     ipcRenderer.on("receiveData", (event: Event, data: ResponseSchema) => {
       this.secretValues = data.secrets;
       let i = 0;
@@ -50,6 +61,7 @@ class Renderer {
         inputDiv.style.display = "none";
         nameDiv.innerText = secret.name;
         secretDiv.innerText = secret.secret;
+        iconButtonDiv.addEventListener("click", this.eyeListener);
         liDiv.appendChild(iconButtonDiv);
         liDiv.appendChild(nameDiv);
         liDiv.appendChild(secretDiv);
@@ -155,12 +167,12 @@ class Renderer {
   private colorModeListeners() {
     const listener = (event: Event) => {
       const element: HTMLElement = event.target as HTMLElement;
-      if (element.id === "dark") {
+      if (element.id == "dark") {
         this.setColorMode(Mode.dark);
       } else {
         this.setColorMode(Mode.light);
       }
-      ipcRenderer.send("theme", { mode: element.id });
+      localStorage.setItem("theme", element.id);
     };
     document.getElementById("light").addEventListener("click", listener);
     document.getElementById("dark").addEventListener("click", listener);

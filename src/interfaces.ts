@@ -6,14 +6,8 @@ export enum Mode {
 
 export interface RequestSchema {
   secrets?: CreateSecretDTO[];
-  profile?: Profile;
 }
 
 export interface ResponseSchema {
   secrets?: GetSecretDTO[];
-  profile?: Profile;
-}
-
-export interface Profile {
-  mode?: Mode;
 }

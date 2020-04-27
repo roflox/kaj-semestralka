@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { CreateSecretDTO } from "./secret.dto";
-import { Mode, Profile, RequestSchema, ResponseSchema } from "./interfaces";
+import {RequestSchema, ResponseSchema } from "./interfaces";
 import * as crypto from "crypto-js";
 
 let mWindow: Electron.BrowserWindow; //main window
@@ -13,11 +13,6 @@ class Main {
     app.getPath("appData"),
     "Keychain",
     "data.json"
-  );
-  private appProfileFilePath = path.join(
-    app.getPath("appData"),
-    "Keychain",
-    "profile.json"
   );
 
   constructor() {}
@@ -48,20 +43,12 @@ class Main {
     this.initDataFile();
   }
 
-  public initProfileFile() {
-    fs.writeFileSync(
-      this.appProfileFilePath,
-      JSON.stringify({ mode: Mode.light })
-    );
-  }
-
   public initDataFile() {
     fs.writeFileSync(this.appDataFilePath, JSON.stringify({ secrets: [] }));
   }
 
   public retrieveData(): ResponseSchema {
     this.checkDirectoryAndFiles();
-    // this.saveProfile(null);
     try {
       const data: RequestSchema = JSON.parse(
         fs.readFileSync(this.appDataFilePath).toString()
@@ -79,29 +66,17 @@ class Main {
     if (!fs.existsSync(this.appDataPath)) {
       this.initDataDirectory();
     }
-    this.checkFile("data");
-    this.checkFile("profile");
+    this.checkFile();
   }
 
-  private checkFile(which: string) {
-    const file =
-      which === "data" ? this.appDataFilePath : this.appProfileFilePath;
-    if (!fs.existsSync(file)) {
-      switch (which) {
-        case "data":
-          this.initDataFile();
-          break;
-        case "profile":
-          this.initProfileFile();
-          break;
-        default:
-          console.error(`wtf?`);
-      }
+  private checkFile() {
+    if (!fs.existsSync(this.appDataFilePath)) {
+      this.initDataFile();
     } else {
       try {
-        JSON.parse(fs.readFileSync(file).toString());
+        JSON.parse(fs.readFileSync(this.appDataFilePath).toString());
       } catch (e) {
-        console.error(`File: ${file} is broken, try to fix it or delete it`);
+        console.error(`File: ${this.appDataFilePath} is broken, try to fix it or delete it`);
       }
     }
   }
@@ -127,29 +102,6 @@ class Main {
       secret.password
     ).toString();
   }
-
-  public saveProfile(profile: Profile) {
-    this.checkDirectoryAndFiles();
-    const tmpProfile: Profile = JSON.parse(
-      fs.readFileSync(this.appProfileFilePath).toString()
-    );
-    if (profile && tmpProfile) {
-      for (const key of Object.keys(profile)) {
-        // @ts-ignore
-        tmpProfile[key] = profile[key];
-      }
-    }
-    fs.writeFileSync(this.appProfileFilePath, JSON.stringify(tmpProfile));
-  }
-
-  public retrieveProfile(): ResponseSchema {
-    this.checkDirectoryAndFiles();
-    try {
-      return JSON.parse(fs.readFileSync(this.appProfileFilePath).toString());
-    } catch (e) {
-      return null;
-    }
-  }
 }
 
 const main = new Main();
@@ -172,14 +124,6 @@ app.on("activate", () => {
 
 ipcMain.on("requestData", event => {
   event.sender.send("receiveData", main.retrieveData());
-});
-
-ipcMain.on("theme", (event, profile: Profile) => {
-  main.saveProfile(profile);
-});
-
-ipcMain.on("requestProfile", event => {
-  event.sender.send("receiveProfile", { profile: main.retrieveProfile() });
 });
 
 ipcMain.on("writeSecret", (event, secret: CreateSecretDTO) => {

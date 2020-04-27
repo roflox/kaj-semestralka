@@ -1,27 +1,25 @@
-.eye-light {
-  background-image: url(src/resources/icons/eye-light-solid.svg);
+.eye {
+  background-image: var(--eye);
   width: 16px;
   height: 16px;
   background-repeat: no-repeat;
   background-position: center;
-  fill: var(--text);
 }
 
-.slash-light {
-  /*background: url("resources/icons/eye-slash-solid.svg") no-repeat;*/
+.eye-slash {
+  background-image: var(--eye-slash);
   width: 16px;
   height: 16px;
-  border: none;
-  display: inline-block;
-  color: grey;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-  "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   color: var(--text);
   background: var(--bg);
   transition: background 250ms ease-in-out, color 250ms ease-in-out;
@@ -225,53 +223,57 @@ li .row div:first-child:hover span {
 }
 
 .dropdown-item a:before {
-  content: ' ';
+  content: " ";
   border: 2px solid white;
   border-radius: 50%;
-  width: .5rem;
-  height: .5rem;
+  width: 0.5rem;
+  height: 0.5rem;
   display: inline-block;
   vertical-align: middle;
   margin-right: 10px;
 }
 
-#light:before{
+#light:before {
   border-color: var(--color1);
   background: var(--color1);
 }
 
-#dark:before{
+#dark:before {
   border-color: var(--color7);
   background: var(--color7);
 }
 
-:root{
+:root {
   --color1: #f8f7ff;
   --color2: #fef9ff;
   --color3: #6c757d;
-  --color4: #A3D5FF;
-  --color5: #83C9F4;
+  --color4: #a3d5ff;
+  --color5: #83c9f4;
   --color6: #5869ef;
   --color7: #474448;
   --color8: #28262c;
 }
 
-.light{
+.light {
   --bg: var(--color1);
   --bg-nav: var(--color5);
   --bg-dropdown: var(--color1);
-  --text:var(--color8);
+  --text: var(--color8);
   --muted-text: var(--color3);
   --border-color: var(--color7);
   --input-color: var(--color2);
+  --eye: url(resources/icons/eye-light.svg);
+  --eye-slash: url(resources/icons/eye-slash-light.svg)
 }
 
-.dark{
+.dark {
   --bg: var(--color8);
   --bg-nav: var(--color6);
   --bg-dropdown: var(--color7);
-  --text:var(--color1);
+  --text: var(--color1);
   --muted-text: var(--color2);
   --border-color: var(--color2);
   --input-color: var(--color7);
+  --eye: url(resources/icons/eye-dark.svg);
+  --eye-slash: url(resources/icons/eye-slash-dark.svg)
 }
