@@ -131,7 +131,6 @@ class Main {
       }
     }) as CreateSecretDTO;
     const decrypted = this.decryptSecret(secret, secretRequest.password);
-    console.log(decrypted);
     if(!decrypted){
       return {id:secret.id,secret:null,correct:false}
     }

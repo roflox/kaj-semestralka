@@ -154,10 +154,10 @@ class Renderer {
             this.secretPassword.value
           )
         );
-        // this.secretName.value = "";
-        // this.secretPassword.value = "";
-        // this.secretPasswordAgain.value = "";
-        // this.secretInput.value = "";
+        this.secretName.value = "";
+        this.secretPassword.value = "";
+        this.secretPasswordAgain.value = "";
+        this.secretInput.value = "";
       }
     });
   }
