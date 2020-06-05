@@ -27,7 +27,9 @@ class Main {
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: true
-      }
+      },
+      minWidth:420,
+      minHeight:470
     });
     mWindow.loadFile(path.join(__dirname, "./index.html")); //loads index.html to user
     mWindow.setMenu(null);
