@@ -41,16 +41,18 @@ class Renderer {
         const parent = target.parentElement.parentElement;
         // console.log(parent);
 
-        if (target.classList.contains("eye-slash")) {
+        if (target.classList.contains("slash")) {
             // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
-            target.classList.replace("eye-slash", "eye");
+            target.classList.remove("slash")
+            // target.classList.replace("eye-slash", "eye");
             target.getElementsByTagName("svg").item(0).innerHTML=Renderer.EYE_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "none";
             parent.getElementsByTagName("button").item(0).style.display = "none";
             const divs = parent.getElementsByTagName("div");
             divs.item(3).innerText = divs.item(4).innerText;
         } else {
-            target.classList.replace("eye", "eye-slash");
+            // target.classList.replace("eye", "eye-slash");
+            target.classList.add("slash");
             // console.log(target.getElementsByTagName("svg").item(0));
             target.getElementsByTagName("svg").item(0).innerHTML=Renderer.EYE_SLASH_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "block";
@@ -142,7 +144,8 @@ class Renderer {
                 iconButtonDiv.classList.add("eye");
                 iconButtonDiv.appendChild(tooltip);
                 iconButtonDiv.addEventListener("click", this.eyeListener);
-                tooltip.textContent = "Display secret";
+                // tooltip.textContent = "t";
+                // tooltip.textContent = "Display secret";
 
                 nameDiv.innerText = secret.name;
                 secretDiv.innerText = secret.secret;

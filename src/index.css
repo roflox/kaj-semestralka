@@ -5,15 +5,9 @@ svg {
 }
 
 
-/*#secrets {*/
-/*  display: flex;*/
-/*  !*justify-content: space-evenly;*!*/
-/*}*/
-
 #secrets .row {
   display: flex;
   justify-content: space-between;
-  /*align-content: flex-start;*/
 }
 
 body {
@@ -33,9 +27,6 @@ ul {
   padding: 0;
 }
 
-#secrets li {
-  display: list-item;
-}
 
 a {
   color: currentColor;
@@ -74,6 +65,8 @@ nav ul {
   }
 }
 
+
+
 /*switch*/
 
 
@@ -101,8 +94,8 @@ nav ul {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: .4s;
   transition: .4s;
+  border-radius: 34px;
 }
 
 .slider:before {
@@ -114,6 +107,7 @@ nav ul {
   bottom: 4px;
   background-color: white;
   transition: .4s;
+  border-radius: 50%;
 }
 
 input:checked + .slider {
@@ -127,16 +121,6 @@ input:focus + .slider {
 input:checked + .slider:before {
   transform: translateX(26px);
 }
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-/*switch*/
 
 
 nav ul li {
@@ -160,6 +144,8 @@ label {
   background-clip: padding-box;
   border: 1px solid var(--border-color);
   border-radius: 0.25rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 form .row {
@@ -191,9 +177,9 @@ form .row {
 .alert {
   position: relative;
   padding: 0.75rem 1.25rem;
-  margin-bottom: 1rem;
   border: 1px solid transparent;
   border-radius: 0.25rem;
+  margin: 1rem;
 }
 
 form {
@@ -201,11 +187,10 @@ form {
   border-radius: .5em;
 }
 
+
 .form-group {
-  /*margin-bottom: 1rem;*/
   font-size: 1.2em;
   margin: 1%;
-  /*border-radius: 5rem;*/
 }
 
 .container {
@@ -214,15 +199,9 @@ form {
   margin-right: auto;
   margin-left: auto;
 }
-/*zde konci bootstrap*/
-
-/*odsazeni mezi divy v ulu*/
-/*li .row div {*/
-/*  padding-right: 15px;*/
-/*}*/
 
 /*tooltip nad očíčkem*/
-li .row:first-child span {
+.eye span {
   visibility: hidden;
   width: 120px;
   background-color: var(--tooltip);
@@ -241,12 +220,23 @@ li .row:first-child span {
   transition: opacity 0.3s;
 }
 
-li .row div:first-child {
+.eye span:before{
+  content: "Display secret";
+}
+
+
+.slash span:before{
+  content: "Hide secret";
+}
+
+.eye:first-child{
   position: relative;
   display: inline-block;
 }
 
-li .row div:first-child span::after {
+
+/*šipka u tooltipu*/
+.eye span::after {
   content: "";
   position: absolute;
   bottom: 25%;
@@ -257,12 +247,23 @@ li .row div:first-child span::after {
   border-color:  transparent transparent transparent #555;
 }
 
-li .row div:first-child:hover span {
+.eye:first-child:hover span {
   visibility: visible;
   opacity: 1;
   user-select: none;
   transition: opacity .7s;
 }
+
+
+@media (max-width: 1070px) {
+  .eye span{
+    display: none;
+  }
+}
+
+
+
+/*tooltip nad očíčkem*/
 
 .dropdown {
   position: absolute;
@@ -346,7 +347,7 @@ li .row div:first-child:hover span {
   --bg-nav: var(--color6);
   --bg-dropdown: var(--color8);
   --text: var(--color1);
-  --muted-text: var(--color2);
+  --muted-text: var(--color3);
   --border-color: var(--color2);
   --input-color: var(--color8);
   --tooltip: var(--color7)
