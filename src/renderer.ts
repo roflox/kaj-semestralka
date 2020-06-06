@@ -30,11 +30,17 @@ class Renderer {
 
 
     private eyeListener = (event: Event) => {
+        // const target =
+        //     (event.target as HTMLElement).tagName.toLowerCase() === "span"
+        //         ? (event.target as HTMLElement).parentElement
+        //         : (event.target as HTMLElement);
         const target =
-            (event.target as HTMLElement).tagName.toLowerCase() === "span"
+            (event.target as HTMLElement).tagName.toLowerCase() === "svg"
                 ? (event.target as HTMLElement).parentElement
-                : (event.target as HTMLElement);
+                : (event.target as HTMLElement).parentElement.parentElement;
         const parent = target.parentElement.parentElement;
+        // console.log(parent);
+
         if (target.classList.contains("eye-slash")) {
             // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
             target.classList.replace("eye-slash", "eye");

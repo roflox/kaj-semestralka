@@ -35,9 +35,7 @@
     "typescript": "latest"
   },
   "dependencies": {
-    "bootstrap": "^4.4.1",
     "crypto-js": "4.0.0",
-    "jquery": "^3.5.0",
     "popper.js": "^1.16.1"
   }
 }
