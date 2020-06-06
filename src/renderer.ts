@@ -1,6 +1,13 @@
 import {ipcRenderer} from "electron";
 import {CreateSecretDTO, GetSecretDTO} from "./secret.dto";
-import {Mode, ResponseSchema, RevealSecretRequest, RevealSecretResponse} from "./interfaces";
+import {
+    DeleteSecretRequest,
+    DeleteSecretResponse,
+    Mode,
+    ResponseSchema,
+    RevealSecretRequest,
+    RevealSecretResponse
+} from "./interfaces";
 
 class Renderer {
     private readonly secrets: HTMLElement = document.getElementById("secrets");
@@ -29,71 +36,12 @@ class Renderer {
     private static readonly EYE_SLASH_HTML = "<path fill=\"currentColor\" d=\"M320 400c-75.85 0-137.25-58.71-142.9-133.11L72.2 185.82c-13.79 17.3-26.48 35.59-36.72 55.59a32.35 32.35 0 0 0 0 29.19C89.71 376.41 197.07 448 320 448c26.91 0 52.87-4 77.89-10.46L346 397.39a144.13 144.13 0 0 1-26 2.61zm313.82 58.1l-110.55-85.44a331.25 331.25 0 0 0 81.25-102.07 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64a308.15 308.15 0 0 0-147.32 37.7L45.46 3.37A16 16 0 0 0 23 6.18L3.37 31.45A16 16 0 0 0 6.18 53.9l588.36 454.73a16 16 0 0 0 22.46-2.81l19.64-25.27a16 16 0 0 0-2.82-22.45zm-183.72-142l-39.3-30.38A94.75 94.75 0 0 0 416 256a94.76 94.76 0 0 0-121.31-92.21A47.65 47.65 0 0 1 304 192a46.64 46.64 0 0 1-1.54 10l-73.61-56.89A142.31 142.31 0 0 1 320 112a143.92 143.92 0 0 1 144 144c0 21.63-5.29 41.79-13.9 60.11z\"></path>";
 
 
-    private eyeListener = (event: Event) => {
-        // const target =
-        //     (event.target as HTMLElement).tagName.toLowerCase() === "span"
-        //         ? (event.target as HTMLElement).parentElement
-        //         : (event.target as HTMLElement);
-        const target =
-            (event.target as HTMLElement).tagName.toLowerCase() === "svg"
-                ? (event.target as HTMLElement).parentElement
-                : (event.target as HTMLElement).parentElement.parentElement;
-        const parent = target.parentElement.parentElement;
-        // console.log(parent);
-
-        if (target.classList.contains("slash")) {
-            // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
-            target.classList.remove("slash")
-            // target.classList.replace("eye-slash", "eye");
-            target.getElementsByTagName("svg").item(0).innerHTML=Renderer.EYE_HTML;
-            parent.getElementsByTagName("input").item(0).style.display = "none";
-            parent.getElementsByTagName("button").item(0).style.display = "none";
-            const divs = parent.getElementsByTagName("div");
-            divs.item(3).innerText = divs.item(4).innerText;
-        } else {
-            // target.classList.replace("eye", "eye-slash");
-            target.classList.add("slash");
-            // console.log(target.getElementsByTagName("svg").item(0));
-            target.getElementsByTagName("svg").item(0).innerHTML=Renderer.EYE_SLASH_HTML;
-            parent.getElementsByTagName("input").item(0).style.display = "block";
-            parent.getElementsByTagName("button").item(0).style.display = "block";
-            // const divs = parent.getElementsByTagName("div");
-            // divs.item(3).innerText = "odhalene heslo";
-        }
-    };
-
-    private submitRevealListener = (event: Event) => {
-        const target = event.target as HTMLButtonElement;
-        const parent = target.parentElement.parentElement;
-        const password = parent.getElementsByTagName("input").item(0).value;
-        if (password.trim().length < 8) {
-            this.displayMessage("Password is incorrect.", false);
-        } else {
-            ipcRenderer.send("revealSecret", {
-                id: parseInt(parent.id.substring(6, parent.id.length)),
-                password: password
-            } as RevealSecretRequest);
-        }
-    };
-
-    private revealSecret = (event: Event, secret: RevealSecretResponse) => {
-        if (!secret.correct) {
-            this.displayMessage("Password is incorrect.", false);
-        } else {
-            // console.log(document.getElementById(`secret${secret.id}`));
-            const secretDiv = document.getElementById(`secret${secret.id}`);
-            secretDiv.getElementsByTagName("input").item(0).style.display = "none";
-            secretDiv.getElementsByTagName("input").item(0).value = "";
-            secretDiv.getElementsByTagName("button").item(0).style.display = "none";
-            secretDiv.getElementsByTagName("div").item(3).innerText = secret.secret;
-        }
-    };
-
+    //constructor
     constructor() {
         if (localStorage.getItem("theme")) {
             const mode = localStorage.getItem("theme") as Mode;
             this.setColorMode(mode);
-            if(mode===Mode.dark){
+            if (mode === Mode.dark) {
                 this.themeSwitch.checked = true;
             }
         } else {
@@ -124,23 +72,30 @@ class Renderer {
                 input.type = "password";
                 input.style.display = "none";
 
+                //delete button
+                const delButton = document.createElement("button") as HTMLButtonElement;
+                delButton.innerText = "Delete secret";
+                delButton.style.display = "none";
+                delButton.addEventListener("click", this.deleteSecretListener);
+                delButton.classList.add("del-button");
+
                 //iconButton + tooltip
                 const tooltip = document.createElement("span");
                 const iconButtonDiv = document.createElement("div");
-                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGElement;
+                const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGElement;
                 //aria-hidden=\"true\" width=\"10%\" height=\"10%\" focusable=\"false\" data-prefix=\"fas\" data-icon=\"eye\" class=\"svg-inline--fa fa-eye fa-w-18\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 576 512\">
 
-                svg.setAttribute("aria-hidden","true");
-                svg.setAttribute("width","16px");
-                svg.setAttribute("height","16px");
-                svg.setAttribute("focusable","false");
+                icon.setAttribute("aria-hidden", "true");
+                icon.setAttribute("width", "16px");
+                icon.setAttribute("height", "16px");
+                icon.setAttribute("focusable", "false");
                 // svg.setAttribute("data-prefix","fas");
                 // svg.setAttribute("data-icon","eye");
                 // svg.setAttribute("role","img")
                 // svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
-                svg.setAttribute("viewBox","0 0 576 512");
-                svg.innerHTML = Renderer.EYE_HTML;
-                iconButtonDiv.appendChild(svg);
+                icon.setAttribute("viewBox", "0 0 576 512");
+                icon.innerHTML = Renderer.EYE_HTML;
+                iconButtonDiv.appendChild(icon);
                 iconButtonDiv.classList.add("eye");
                 iconButtonDiv.appendChild(tooltip);
                 iconButtonDiv.addEventListener("click", this.eyeListener);
@@ -155,6 +110,7 @@ class Renderer {
                 liDiv.appendChild(input);
                 liDiv.appendChild(button);
                 liDiv.appendChild(tmpDiv);
+                liDiv.appendChild(delButton);
                 liDiv.classList.add("row");
                 li.appendChild(liDiv);
                 li.id = `secret${secret.id}`;
@@ -162,10 +118,86 @@ class Renderer {
             }
         });
         ipcRenderer.on("revealSecret", this.revealSecret);
+        ipcRenderer.on("deleteSecret",this.deleteSecret)
         this.requestProfile();
         this.requestData();
         this.createFormListeners();
         this.colorModeListeners();
+    }
+
+    private eyeListener = (event: Event) => {
+        const target =
+            (event.target as HTMLElement).tagName.toLowerCase() === "svg"
+                ? (event.target as HTMLElement).parentElement
+                : (event.target as HTMLElement).parentElement.parentElement;
+        const parent = target.parentElement.parentElement;
+
+        if (target.classList.contains("slash")) {
+            // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
+            target.classList.remove("slash")
+            parent.getElementsByTagName("input").item(0).value = "";
+            target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_HTML;
+            parent.getElementsByTagName("input").item(0).style.display = "none";
+            parent.getElementsByTagName("button").item(0).style.display = "none";
+            const divs = parent.getElementsByTagName("div");
+            divs.item(3).innerText = divs.item(4).innerText;
+        } else {
+            target.classList.add("slash");
+            target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_SLASH_HTML;
+            parent.getElementsByTagName("input").item(0).style.display = "block";
+            parent.getElementsByTagName("button").item(0).style.display = "block";
+        }
+    };
+
+    private submitRevealListener = (event: Event) => {
+        const target = event.target as HTMLButtonElement;
+        const parent = target.parentElement.parentElement;
+        const password = parent.getElementsByTagName("input").item(0).value;
+        if (password.trim().length < 8) {
+            this.displayMessage("Password is incorrect.", false);
+        } else {
+            ipcRenderer.send("revealSecret", {
+                id: parseInt(parent.id.substring(6, parent.id.length)),
+                password: password
+            } as RevealSecretRequest);
+        }
+    };
+
+    private deleteSecretListener = (event: Event) => {
+        const target = event.target as HTMLButtonElement;
+        const parent = target.parentElement.parentElement;
+
+        const password = parent.getElementsByTagName("input").item(0).value;
+        // console.log(password);
+        console.log("listener works");
+        ipcRenderer.send("deleteSecret",{
+            id: parseInt(parent.id.substring(6, parent.id.length)),
+            password: password
+        } as DeleteSecretRequest);
+
+    }
+
+    private revealSecret = (event: Event, response: RevealSecretResponse) => {
+        if (!response.correct) {
+            this.displayMessage("Password is incorrect.", false);
+        } else {
+            const secretDiv = document.getElementById(`secret${response.id}`);
+            secretDiv.getElementsByTagName("input").item(0).style.display = "none";
+
+            secretDiv.getElementsByTagName("button").item(0).style.display = "none";
+            secretDiv.getElementsByTagName("button").item(1).style.display = "block";
+            secretDiv.getElementsByTagName("div").item(3).innerText = response.secret;
+        }
+    };
+
+    private deleteSecret = (event:Event, response: DeleteSecretResponse) => {
+        if(!response.correct){
+            this.displayMessage("Something went wrong, with deleting this secret", false);
+        }else {
+            const secretDiv = document.getElementById(`secret${response.id}`);
+            const parent = secretDiv.parentElement;
+            parent.removeChild(secretDiv);
+        }
     }
 
     private requestData() {
@@ -266,15 +298,15 @@ class Renderer {
             }
             localStorage.setItem("theme", element.id);
         };
-        this.themeSwitch.addEventListener("change",(e)=>{
-             const target = e.target as HTMLInputElement;
-             if(target.checked){
-                 this.setColorMode(Mode.dark);
-                 localStorage.setItem("theme", "dark");
-             }else {
-                 this.setColorMode(Mode.light);
-                 localStorage.setItem("theme", "light");
-             }
+        this.themeSwitch.addEventListener("change", (e) => {
+            const target = e.target as HTMLInputElement;
+            if (target.checked) {
+                this.setColorMode(Mode.dark);
+                localStorage.setItem("theme", "dark");
+            } else {
+                this.setColorMode(Mode.light);
+                localStorage.setItem("theme", "light");
+            }
         })
         document.getElementById("light").addEventListener("click", listener);
         document.getElementById("dark").addEventListener("click", listener);

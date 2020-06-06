@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { CreateSecretDTO, GetSecretDTO } from "./secret.dto";
 import {
+  DeleteSecretRequest, DeleteSecretResponse,
   RequestSchema,
   ResponseSchema,
   RevealSecretRequest,
@@ -124,19 +125,41 @@ class Main {
   }
 
   public revealSecret(
-    secretRequest: RevealSecretRequest
+    request: RevealSecretRequest
   ): RevealSecretResponse {
     const data = this.retrieveData(true);
     const secret = data.secrets.find(secret => {
-      if (secret.id === secretRequest.id) {
+      if (secret.id === request.id) {
         return secret;
       }
     }) as CreateSecretDTO;
-    const decrypted = this.decryptSecret(secret, secretRequest.password);
+    const decrypted = this.decryptSecret(secret, request.password);
     if(!decrypted){
       return {id:secret.id,secret:null,correct:false}
     }
     return {id:secret.id,secret:decrypted,correct:true};
+  }
+
+  public deleteSecret(request:DeleteSecretRequest):DeleteSecretResponse{
+    const data = this.retrieveData(true);
+    const secret = data.secrets.find(secret => {
+      if (secret.id === request.id) {
+        return secret;
+      }
+    }) as CreateSecretDTO;
+    const decrypted = this.decryptSecret(secret, request.password);
+    console.log(decrypted);
+    if(!decrypted){
+      console.log("something went wrong");
+      return {id:secret.id,correct:false}
+    }
+    data.secrets = data.secrets.filter((secret)=>{
+      return secret.id != request.id;
+    });
+    this.checkDirectoryAndFiles();
+    fs.writeFileSync(this.appDataFilePath, JSON.stringify(data));
+    console.log("it should work");
+    return {id:secret.id,correct:true};
   }
 }
 
@@ -169,3 +192,7 @@ ipcMain.on("writeSecret", (event, secret: CreateSecretDTO) => {
 ipcMain.on("revealSecret", (event, secretRequest: RevealSecretRequest) => {
   event.sender.send("revealSecret", main.revealSecret(secretRequest));
 });
+
+ipcMain.on("deleteSecret",(event, request:DeleteSecretRequest)=>{
+  event.sender.send("deleteSecret",main.deleteSecret(request));
+})

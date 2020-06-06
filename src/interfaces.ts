@@ -22,3 +22,13 @@ export interface RevealSecretResponse {
   correct: boolean,
   secret: string;
 }
+
+export interface DeleteSecretRequest {
+  id: number,
+  password?: string
+}
+
+export interface DeleteSecretResponse {
+  id: number,
+  correct: boolean
+}
