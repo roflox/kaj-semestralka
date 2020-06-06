@@ -47,30 +47,32 @@ nav ul {
   height: 100%;
 }
 
-@media  (min-width: 560px) {
-  .nav-item{
+@media (min-width: 560px) {
+  .nav-item {
     margin-right: 10em;
   }
-  .switch-item{
+
+  .switch-item {
     display: none;
   }
 }
 
 @media (max-width: 560px) {
-  .switch-item{
+  .switch-item {
     display: block;
   }
-  .has-dropdown{
+
+  .has-dropdown {
     display: none;
   }
 }
 
 
+/* switch */
+.switch-item :first-child {
+  margin-top: 22px;
+}
 
-/*switch*/
-
-
-/* The switch - the box around the slider */
 .switch {
   position: relative;
   display: inline-block;
@@ -85,7 +87,7 @@ nav ul {
   height: 0;
 }
 
-/* The slider */
+/* slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -122,6 +124,7 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+/*switch*/
 
 nav ul li {
   user-select: none;
@@ -183,7 +186,7 @@ form .row {
 }
 
 form {
-  border: 1px solid var(--border-color) ;
+  border: 1px solid var(--border-color);
   border-radius: .5em;
 }
 
@@ -220,16 +223,16 @@ form {
   transition: opacity 0.3s;
 }
 
-.eye span:before{
+.eye span:before {
   content: "Display secret";
 }
 
 
-.slash span:before{
+.slash span:before {
   content: "Hide secret";
 }
 
-.eye:first-child{
+.eye:first-child {
   position: relative;
   display: inline-block;
 }
@@ -244,7 +247,7 @@ form {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color:  transparent transparent transparent #555;
+  border-color: transparent transparent transparent #555;
 }
 
 .eye:first-child:hover span {
@@ -256,11 +259,10 @@ form {
 
 
 @media (max-width: 1070px) {
-  .eye span{
+  .eye span {
     display: none;
   }
 }
-
 
 
 /*tooltip nad očíčkem*/
