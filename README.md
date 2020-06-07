@@ -15,6 +15,18 @@ npm
 `npm run build`
 
 ### Vytvořit package pro cílovou platformu
+
+#### Mac - x64
+`npm run pack-mac`
+
+#### Linux - x64
+`npm run pack-lin`
+
+
+#### Windows - x64
+`npm run pack-win`
+
+#### Všechny podporované platformy
 `npm run pack-all`
 
 Ve složce `out/` si najíc cílovou platformu, např. `win-32-x64` a spustit Keychain.exe
