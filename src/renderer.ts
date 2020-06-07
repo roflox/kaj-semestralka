@@ -48,75 +48,7 @@ class Renderer {
             localStorage.setItem("theme", "light");
             this.setColorMode(Mode.light);
         }
-        ipcRenderer.on("receiveData", (event: Event, data: ResponseSchema) => {
-            this.secretValues = data.secrets;
-            this.secrets.innerHTML = "";
-            for (const secret of this.secretValues) {
-                const li = document.createElement("li");
-                const liDiv = document.createElement("div");
-                const nameDiv = document.createElement("div");
-                const secretDiv = document.createElement("div");
-                const tmpDiv = document.createElement("div");
-                tmpDiv.style.display = "none";
-                tmpDiv.innerText = secret.secret;
-
-                //button
-                const button = document.createElement("button") as HTMLButtonElement;
-                button.innerText = "Submit Password";
-                button.style.display = "none";
-                button.addEventListener("click", this.submitRevealListener);
-
-                //input
-                const input = document.createElement("input") as HTMLInputElement;
-                input.placeholder = "Password";
-                input.type = "password";
-                input.style.display = "none";
-
-                //delete button
-                const delButton = document.createElement("button") as HTMLButtonElement;
-                delButton.innerText = "Delete secret";
-                delButton.style.display = "none";
-                delButton.addEventListener("click", this.deleteSecretListener);
-                delButton.classList.add("del-button");
-
-                //iconButton + tooltip
-                const tooltip = document.createElement("span");
-                const iconButtonDiv = document.createElement("div");
-                const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGElement;
-                //aria-hidden=\"true\" width=\"10%\" height=\"10%\" focusable=\"false\" data-prefix=\"fas\" data-icon=\"eye\" class=\"svg-inline--fa fa-eye fa-w-18\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 576 512\">
-
-                icon.setAttribute("aria-hidden", "true");
-                icon.setAttribute("width", "16px");
-                icon.setAttribute("height", "16px");
-                icon.setAttribute("focusable", "false");
-                // svg.setAttribute("data-prefix","fas");
-                // svg.setAttribute("data-icon","eye");
-                // svg.setAttribute("role","img")
-                // svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
-                icon.setAttribute("viewBox", "0 0 576 512");
-                icon.innerHTML = Renderer.EYE_HTML;
-                iconButtonDiv.appendChild(icon);
-                iconButtonDiv.classList.add("eye");
-                iconButtonDiv.appendChild(tooltip);
-                iconButtonDiv.addEventListener("click", this.eyeListener);
-                // tooltip.textContent = "t";
-                // tooltip.textContent = "Display secret";
-
-                nameDiv.innerText = secret.name;
-                secretDiv.innerText = secret.secret;
-                liDiv.appendChild(iconButtonDiv);
-                liDiv.appendChild(nameDiv);
-                liDiv.appendChild(secretDiv);
-                liDiv.appendChild(input);
-                liDiv.appendChild(button);
-                liDiv.appendChild(tmpDiv);
-                liDiv.appendChild(delButton);
-                liDiv.classList.add("row");
-                li.appendChild(liDiv);
-                li.id = `secret${secret.id}`;
-                this.secrets.appendChild(li);
-            }
-        });
+        ipcRenderer.on("receiveData", this.drawData);
         ipcRenderer.on("revealSecret", this.revealSecret);
         ipcRenderer.on("deleteSecret",this.deleteSecret)
         this.requestProfile();
@@ -125,6 +57,65 @@ class Renderer {
         this.colorModeListeners();
     }
 
+    private drawData = (event: Event, data: ResponseSchema) => {
+        this.secretValues = data.secrets;
+        this.secrets.innerHTML = "";
+        for (const secret of this.secretValues) {
+            const li = document.createElement("li");
+            const liDiv = document.createElement("div");
+            const nameDiv = document.createElement("div");
+            const secretDiv = document.createElement("div");
+            secretDiv.style.display = "none";
+
+            //button
+            const button = document.createElement("button") as HTMLButtonElement;
+            button.innerText = "Submit Password";
+            button.style.display = "none";
+            button.addEventListener("click", this.submitRevealListener);
+
+            //input
+            const input = document.createElement("input") as HTMLInputElement;
+            input.placeholder = "Password";
+            input.type = "password";
+            input.style.display = "none";
+
+            //delete button
+            const delButton = document.createElement("button") as HTMLButtonElement;
+            delButton.innerText = "Delete secret";
+            delButton.style.display = "none";
+            delButton.addEventListener("click", this.deleteSecretListener);
+            delButton.classList.add("del-button");
+
+            //iconButton + tooltip
+            const tooltip = document.createElement("span");
+            const iconButtonDiv = document.createElement("div");
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGElement;
+            icon.setAttribute("aria-hidden", "true");
+            icon.setAttribute("width", "16px");
+            icon.setAttribute("height", "16px");
+            icon.setAttribute("focusable", "false");
+            icon.setAttribute("viewBox", "0 0 576 512");
+            icon.innerHTML = Renderer.EYE_HTML;
+            iconButtonDiv.appendChild(icon);
+            iconButtonDiv.classList.add("eye");
+            iconButtonDiv.appendChild(tooltip);
+            iconButtonDiv.addEventListener("click", this.eyeListener);
+
+            nameDiv.innerText = secret.name;
+            liDiv.appendChild(iconButtonDiv);
+            liDiv.appendChild(nameDiv);
+            liDiv.appendChild(secretDiv);
+            liDiv.appendChild(input);
+            liDiv.appendChild(button);
+            liDiv.appendChild(delButton);
+            liDiv.classList.add("row");
+            li.appendChild(liDiv);
+            li.id = `secret${secret.id}`;
+            this.secrets.appendChild(li);
+        }
+    }
+
+    //listener na kliknutí na očíčko
     private eyeListener = (event: Event) => {
         const target =
             (event.target as HTMLElement).tagName.toLowerCase() === "svg"
@@ -136,19 +127,22 @@ class Renderer {
             // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
             target.classList.remove("slash")
             parent.getElementsByTagName("input").item(0).value = "";
+            parent.getElementsByTagName("div").item(3).innerText="";
             target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "none";
             parent.getElementsByTagName("button").item(0).style.display = "none";
-            const divs = parent.getElementsByTagName("div");
-            divs.item(3).innerText = divs.item(4).innerText;
+            parent.getElementsByTagName("button").item(1).style.display = "none";
+            parent.getElementsByTagName("div").item(3).style.display="none";
         } else {
             target.classList.add("slash");
             target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_SLASH_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "block";
             parent.getElementsByTagName("button").item(0).style.display = "block";
+            // parent.getElementsByTagName("div").item(2).style.display="block";
         }
     };
 
+    //listener na odhalení secretu
     private submitRevealListener = (event: Event) => {
         const target = event.target as HTMLButtonElement;
         const parent = target.parentElement.parentElement;
@@ -163,13 +157,12 @@ class Renderer {
         }
     };
 
+
+    //listener na odmazání secretu
     private deleteSecretListener = (event: Event) => {
         const target = event.target as HTMLButtonElement;
         const parent = target.parentElement.parentElement;
-
         const password = parent.getElementsByTagName("input").item(0).value;
-        // console.log(password);
-        console.log("listener works");
         ipcRenderer.send("deleteSecret",{
             id: parseInt(parent.id.substring(6, parent.id.length)),
             password: password
@@ -177,16 +170,17 @@ class Renderer {
 
     }
 
+
     private revealSecret = (event: Event, response: RevealSecretResponse) => {
         if (!response.correct) {
             this.displayMessage("Password is incorrect.", false);
         } else {
             const secretDiv = document.getElementById(`secret${response.id}`);
             secretDiv.getElementsByTagName("input").item(0).style.display = "none";
-
             secretDiv.getElementsByTagName("button").item(0).style.display = "none";
             secretDiv.getElementsByTagName("button").item(1).style.display = "block";
             secretDiv.getElementsByTagName("div").item(3).innerText = response.secret;
+            secretDiv.getElementsByTagName("div").item(3).style.display="block";
         }
     };
 
