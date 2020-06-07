@@ -3,7 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { CreateSecretDTO, GetSecretDTO } from "./secret.dto";
 import {
-  DeleteSecretRequest, DeleteSecretResponse,
+  DeleteSecretRequest,
+  DeleteSecretResponse,
   RequestSchema,
   ResponseSchema,
   RevealSecretRequest,
@@ -29,8 +30,8 @@ class Main {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: true
       },
-      minWidth:420,
-      minHeight:470
+      minWidth: 420,
+      minHeight: 470
     });
     await mWindow.loadFile(path.join(__dirname, "./index.html")); //loads index.html to user
     mWindow.setMenu(null);
@@ -93,14 +94,20 @@ class Main {
     }
   }
 
-  private getLastId():number{
+  private getLastId(): number {
     const data = this.retrieveData(false);
-    let id:number;
-    if(data.secrets.length===0){
+    let id: number;
+    if (data.secrets.length === 0) {
       id = 0;
-    }else {
-      id = data.secrets[data.secrets.length-1].id
-      while(data.secrets.map(s=>s.id).filter((i)=>{return i===id}).length>0){
+    } else {
+      id = data.secrets[data.secrets.length - 1].id;
+      while (
+        data.secrets
+          .map(s => s.id)
+          .filter(i => {
+            return i === id;
+          }).length > 0
+      ) {
         id++;
       }
     }
@@ -108,7 +115,6 @@ class Main {
   }
 
   public writeData(secret: CreateSecretDTO): ResponseSchema {
-    console.log(secret);
     this.encryptSecret(secret);
     this.checkDirectoryAndFiles();
     const json: RequestSchema = JSON.parse(
@@ -133,32 +139,13 @@ class Main {
 
   private decryptSecret(secret: CreateSecretDTO, password: string) {
     const tmp = crypto.SHA256(password).toString(crypto.enc.Hex);
-    if(tmp!==secret.password) {
+    if (tmp !== secret.password) {
       return null;
     }
-    return crypto.AES.decrypt(secret.secret,tmp,).toString(crypto.enc.Utf8);
+    return crypto.AES.decrypt(secret.secret, tmp).toString(crypto.enc.Utf8);
   }
 
-  public revealSecret(
-    request: RevealSecretRequest
-  ): RevealSecretResponse {
-    const data = this.retrieveData(true);
-    const secret = data.secrets.find(secret => {
-      if (secret.id === request.id) {
-        return secret;
-      }
-    }) as CreateSecretDTO;
-    console.log(secret);
-    console.log(request.password);
-    const decrypted = this.decryptSecret(secret, request.password);
-    console.log(decrypted);
-    if(!decrypted){
-      return {id:secret.id,secret:null,correct:false}
-    }
-    return {id:secret.id,secret:decrypted,correct:true};
-  }
-
-  public deleteSecret(request:DeleteSecretRequest):DeleteSecretResponse{
+  public revealSecret(request: RevealSecretRequest): RevealSecretResponse {
     const data = this.retrieveData(true);
     const secret = data.secrets.find(secret => {
       if (secret.id === request.id) {
@@ -166,15 +153,29 @@ class Main {
       }
     }) as CreateSecretDTO;
     const decrypted = this.decryptSecret(secret, request.password);
-    if(!decrypted){
-      return {id:secret.id,correct:false}
+    if (!decrypted) {
+      return { id: secret.id, secret: null, correct: false };
     }
-    data.secrets = data.secrets.filter((secret)=>{
+    return { id: secret.id, secret: decrypted, correct: true };
+  }
+
+  public deleteSecret(request: DeleteSecretRequest): DeleteSecretResponse {
+    const data = this.retrieveData(true);
+    const secret = data.secrets.find(secret => {
+      if (secret.id === request.id) {
+        return secret;
+      }
+    }) as CreateSecretDTO;
+    const decrypted = this.decryptSecret(secret, request.password);
+    if (!decrypted) {
+      return { id: secret.id, correct: false };
+    }
+    data.secrets = data.secrets.filter(secret => {
       return secret.id != request.id;
     });
     this.checkDirectoryAndFiles();
     fs.writeFileSync(this.appDataFilePath, JSON.stringify(data));
-    return {id:secret.id,correct:true};
+    return { id: secret.id, correct: true };
   }
 }
 
@@ -208,6 +209,6 @@ ipcMain.on("revealSecret", (event, secretRequest: RevealSecretRequest) => {
   event.sender.send("revealSecret", main.revealSecret(secretRequest));
 });
 
-ipcMain.on("deleteSecret",(event, request:DeleteSecretRequest)=>{
-  event.sender.send("deleteSecret",main.deleteSecret(request));
-})
+ipcMain.on("deleteSecret", (event, request: DeleteSecretRequest) => {
+  event.sender.send("deleteSecret", main.deleteSecret(request));
+});
