@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc && npm run postbuild",
-    "postbuild": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles -u 1 src/resources/icons/**/* build && copyfiles node_modules/crypto-js/**/* build",
+    "postbuild": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles \"node_modules/crypto-js/**/*\" build",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start-build": "npm run build && electron build/main.js && npm run watch",
