@@ -1,6 +1,8 @@
 # Semestrální práce
 
-Aplikace je napsaná za pomocí nástroje Electron, tudíž výstupem je pustitelný program, který na pozadí spouští Chromium jádro a to pak spouští moje JavaScriptové funkce.
+
+## Popis
+Aplikace je napsaná v Typescriptu a využívá nástroj Electron. Elektron jsem zvolil jelikož potřebuji ukládat data do filesystému a ne jen do LocalStorage.
 
 ## Prerequisities
 npm nebo yarn
