@@ -10,11 +10,11 @@
     "url": "https://www.linkedin.com/in/ji%C5%99%C3%AD-pazdera-0043861a0/"
   },
   "scripts": {
-    "build": "tsc && postbuild",
+    "build": "tsc && npm run postbuild",
     "postbuild": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles -u 1 src/resources/icons/**/* build && copyfiles node_modules/crypto-js/**/* build",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "start-build": "build && electron build/main.js && watch",
+    "start-build": "npm run build && electron build/main.js && npm run watch",
     "start": "electron build/main.js",
     "copy": "copyfiles --flat src/index.html src/index.css package.json build && copyfiles node_modules/crypto-js/**/* build && copyfiles -u 1 src/resources/icons/**/* build",
     "pack-win": "electron-packager build keychain --platform=win32 --arch=x64 --executable-name=Keychain --overwrite --out=out",
