@@ -38,12 +38,12 @@ class Main {
     mWindow.on("closed", () => {
       mWindow = null;
     });
-    globalShortcut.register("f11", function() {
-      mWindow.webContents.toggleDevTools();
-    });
-    globalShortcut.register("f5", function() {
-      mWindow.reload();
-    });
+    // globalShortcut.register("f11", function() {
+    //   mWindow.webContents.toggleDevTools();
+    // });
+    // globalShortcut.register("f5", function() {
+    //   mWindow.reload();
+    // });
     mWindow.maximize();
   }
 
