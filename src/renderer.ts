@@ -50,9 +50,8 @@ class Renderer {
         }
         ipcRenderer.on("receiveData", this.drawData);
         ipcRenderer.on("revealSecret", this.revealSecret);
-        ipcRenderer.on("deleteSecret",this.deleteSecret)
-        this.requestProfile();
-        this.requestData();
+        ipcRenderer.on("deleteSecret", this.deleteSecret)
+        ipcRenderer.send("requestData")
         this.createFormListeners();
         this.colorModeListeners();
     }
@@ -127,35 +126,80 @@ class Renderer {
             // je vyzadovano zadani hesla, popr se uz heslo zobrazilo
             target.classList.remove("slash")
             parent.getElementsByTagName("input").item(0).value = "";
-            parent.getElementsByTagName("div").item(3).innerText="";
+            parent.getElementsByTagName("div").item(3).innerText = "";
             target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "none";
             parent.getElementsByTagName("button").item(0).style.display = "none";
             parent.getElementsByTagName("button").item(1).style.display = "none";
-            parent.getElementsByTagName("div").item(3).style.display="none";
+            parent.getElementsByTagName("div").item(3).style.display = "none";
         } else {
             target.classList.add("slash");
             target.getElementsByTagName("svg").item(0).innerHTML = Renderer.EYE_SLASH_HTML;
             parent.getElementsByTagName("input").item(0).style.display = "block";
             parent.getElementsByTagName("button").item(0).style.display = "block";
-            // parent.getElementsByTagName("div").item(2).style.display="block";
         }
     };
+
+    private passwordListener = () => {
+        const password = this.secretPassword.value;
+        if (password.length < 8) {
+            this.displayMessage("Password must be at least 8 characters!", false);
+        } else {
+            this.hideMessage();
+        }
+    }
+
+    private passwordAgListener = () => {
+        const password = this.secretPassword.value;
+        const passwordAg = this.secretPassword.value;
+        if (password.length < 8) {
+            this.displayMessage("Password must be at least 8 characters!", false);
+        } else if (password !== passwordAg) {
+            this.displayMessage("Password and password again must match", false);
+        } else {
+            this.hideMessage();
+        }
+    }
 
     //listener na odhalení secretu
     private submitRevealListener = (event: Event) => {
         const target = event.target as HTMLButtonElement;
         const parent = target.parentElement.parentElement;
-        const password = parent.getElementsByTagName("input").item(0).value;
-        if (password.trim().length < 8) {
-            this.displayMessage("Password is incorrect.", false);
-        } else {
+
+        // console.log(parent.getElementsByTagName("input").item(0).value)
+        if(parent.getElementsByTagName("input").item(0).value.length<8){
+            this.displayMessage("Password is incorrect",false);
+        }
+        else {
+            const password = document.getElementById("secret-password") as HTMLInputElement;
             ipcRenderer.send("revealSecret", {
                 id: parseInt(parent.id.substring(6, parent.id.length)),
-                password: password
+                password: password.value
             } as RevealSecretRequest);
         }
     };
+
+
+    private validateForm(): string[] {
+        const errors = [] as string[];
+        const secretName = this.secretName.value;
+        const secret = this.secretInput.value;
+        const password = this.secretPassword.value;
+        const passwordAgain = this.secretPasswordAgain.value;
+
+        if (secretName === "" || secretName === null || secret === "" || secret === null || password === "" || password === null || passwordAgain === "" || passwordAgain === null) {
+            errors.push("Fields cannot be empty");
+        } else if (password !== passwordAgain) {
+            errors.push("Password and password again must match");
+        } else if (password.length < 8) {
+            errors.push("Password must be at least 8 characters");
+        } else if (this.secretValues
+            .map(secret => secret.name)
+            .includes(this.secretName.value.trim())) {
+            errors.push("Secret with this name already exists");
+        }
+        return errors;
+    }
 
 
     //listener na odmazání secretu
@@ -163,7 +207,7 @@ class Renderer {
         const target = event.target as HTMLButtonElement;
         const parent = target.parentElement.parentElement;
         const password = parent.getElementsByTagName("input").item(0).value;
-        ipcRenderer.send("deleteSecret",{
+        ipcRenderer.send("deleteSecret", {
             id: parseInt(parent.id.substring(6, parent.id.length)),
             password: password
         } as DeleteSecretRequest);
@@ -180,81 +224,43 @@ class Renderer {
             secretDiv.getElementsByTagName("button").item(0).style.display = "none";
             secretDiv.getElementsByTagName("button").item(1).style.display = "block";
             secretDiv.getElementsByTagName("div").item(3).innerText = response.secret;
-            secretDiv.getElementsByTagName("div").item(3).style.display="block";
+            secretDiv.getElementsByTagName("div").item(3).style.display = "block";
+            this.hideMessage();
         }
     };
 
-    private deleteSecret = (event:Event, response: DeleteSecretResponse) => {
-        if(!response.correct){
+    private deleteSecret = (event: Event, response: DeleteSecretResponse) => {
+        if (!response.correct) {
             this.displayMessage("Something went wrong, with deleting this secret", false);
-        }else {
+        } else {
             const secretDiv = document.getElementById(`secret${response.id}`);
             const parent = secretDiv.parentElement;
             parent.removeChild(secretDiv);
         }
     }
 
-    private requestData() {
-        ipcRenderer.send("requestData");
-    }
-
-    private requestProfile() {
-        ipcRenderer.send("requestProfile");
-    }
-
     private createFormListeners() {
-        this.secretPasswordAgain.addEventListener("blur", () => {
-            this.checkPassword();
-        });
+        this.secretPasswordAgain.addEventListener("blur", this.passwordAgListener);
+        this.secretPassword.addEventListener("blur", this.passwordListener);
         this.saveSecretButton.addEventListener("click", () => {
-            if (this.checkForm()) {
-                this.writeSecret(
-                    new CreateSecretDTO(
-                        this.secretName.value.trim(),
-                        this.secretInput.value,
-                        this.secretPassword.value
-                    )
-                );
+            const errors = this.validateForm();
+            if (errors.length != 0) {
+                this.displayMessage(errors[0], false);
+            } else {
+                ipcRenderer.send("writeSecret", new CreateSecretDTO(
+                    this.secretName.value.trim(),
+                    this.secretInput.value,
+                    this.secretPassword.value
+                ));
                 this.secretName.value = "";
                 this.secretPassword.value = "";
                 this.secretPasswordAgain.value = "";
                 this.secretInput.value = "";
+                this.displayMessage("Secret was successfully stored", true);
             }
         });
     }
 
-    private checkForm(): boolean {
-        if (
-            !this.secretInput.value.trim() ||
-            !this.secretName.value.trim() ||
-            !this.checkPassword()
-        ) {
-            return false;
-        } else if (
-            this.secretValues
-                .map(secret => secret.name)
-                .includes(this.secretName.value.trim())
-        ) {
-            this.displayMessage("Secret with this name already exists!", false);
-            return false;
-        } else {
-            this.displayMessage("Secret successfully saved.", true);
-            return true;
-        }
-    }
-
-    private checkPassword(): boolean {
-        if (this.secretPasswordAgain.value !== this.secretPassword.value) {
-            this.displayMessage("Passwords must match!", false);
-            return false;
-        } else if (this.secretPassword.value.length < 8) {
-            this.displayMessage("Password must be at least 8 characters!", false);
-            return false;
-        } else {
-            this.hideMessage();
-            return true;
-        }
-    }
 
     private displayMessage(message: string, succes: boolean) {
         this.userInfoBar.style.display = "block";
@@ -267,14 +273,8 @@ class Renderer {
             this.userInfoBar.classList.remove("alert-success");
         }
         this.userInfoBar.innerText = message;
-        // setTimeout(() => {
-        //   this.hideMessage();
-        // }, 5000);
     }
 
-    private writeSecret(secret: CreateSecretDTO) {
-        ipcRenderer.send("writeSecret", secret);
-    }
 
     private hideMessage() {
         this.userInfoBar.style.display = "none";

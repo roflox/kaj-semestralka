@@ -23,7 +23,7 @@ class Main {
 
   constructor() {}
 
-  public createWindow() {
+  public async createWindow() {
     mWindow = new BrowserWindow({
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
@@ -32,7 +32,7 @@ class Main {
       minWidth:420,
       minHeight:470
     });
-    mWindow.loadFile(path.join(__dirname, "./index.html")); //loads index.html to user
+    await mWindow.loadFile(path.join(__dirname, "./index.html")); //loads index.html to user
     mWindow.setMenu(null);
     mWindow.on("closed", () => {
       mWindow = null;
@@ -93,13 +93,27 @@ class Main {
     }
   }
 
+  private getLastId():number{
+    const data = this.retrieveData(false);
+    let id:number;
+    if(data.secrets.length===0){
+      id = 0;
+    }else {
+      id = data.secrets[data.secrets.length-1].id
+      while(data.secrets.map(s=>s.id).filter((i)=>{return i===id}).length>0){
+        id++;
+      }
+    }
+    return id;
+  }
+
   public writeData(secret: CreateSecretDTO): ResponseSchema {
     this.encryptSecret(secret);
     this.checkDirectoryAndFiles();
     const json: RequestSchema = JSON.parse(
       fs.readFileSync(this.appDataFilePath).toString()
     );
-    secret.id = json.secrets.length;
+    secret.id = this.getLastId();
     json.secrets.push(secret);
     fs.writeFileSync(this.appDataFilePath, JSON.stringify(json));
     for (const secret of json.secrets) {
@@ -148,9 +162,7 @@ class Main {
       }
     }) as CreateSecretDTO;
     const decrypted = this.decryptSecret(secret, request.password);
-    console.log(decrypted);
     if(!decrypted){
-      console.log("something went wrong");
       return {id:secret.id,correct:false}
     }
     data.secrets = data.secrets.filter((secret)=>{
@@ -158,7 +170,6 @@ class Main {
     });
     this.checkDirectoryAndFiles();
     fs.writeFileSync(this.appDataFilePath, JSON.stringify(data));
-    console.log("it should work");
     return {id:secret.id,correct:true};
   }
 }
