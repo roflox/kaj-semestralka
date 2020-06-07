@@ -70,6 +70,7 @@ class Renderer {
             const button = document.createElement("button") as HTMLButtonElement;
             button.innerText = "Submit Password";
             button.style.display = "none";
+            button.classList.add("primary")
             button.addEventListener("click", this.submitRevealListener);
 
             //input
@@ -77,13 +78,14 @@ class Renderer {
             input.placeholder = "Password";
             input.type = "password";
             input.style.display = "none";
+            input.classList.add("form-control");
 
             //delete button
             const delButton = document.createElement("button") as HTMLButtonElement;
             delButton.innerText = "Delete secret";
             delButton.style.display = "none";
             delButton.addEventListener("click", this.deleteSecretListener);
-            delButton.classList.add("del-button");
+            delButton.classList.add("danger");
 
             //iconButton + tooltip
             const tooltip = document.createElement("span");
@@ -171,10 +173,10 @@ class Renderer {
             this.displayMessage("Password is incorrect",false);
         }
         else {
-            const password = document.getElementById("secret-password") as HTMLInputElement;
+            const password = parent.getElementsByTagName("input").item(0).value;
             ipcRenderer.send("revealSecret", {
                 id: parseInt(parent.id.substring(6, parent.id.length)),
-                password: password.value
+                password: password
             } as RevealSecretRequest);
         }
     };
@@ -216,6 +218,7 @@ class Renderer {
 
 
     private revealSecret = (event: Event, response: RevealSecretResponse) => {
+        console.log(response);
         if (!response.correct) {
             this.displayMessage("Password is incorrect.", false);
         } else {
@@ -242,11 +245,15 @@ class Renderer {
     private createFormListeners() {
         this.secretPasswordAgain.addEventListener("blur", this.passwordAgListener);
         this.secretPassword.addEventListener("blur", this.passwordListener);
-        this.saveSecretButton.addEventListener("click", () => {
+        this.saveSecretButton.addEventListener("click", (e) => {
+            e.preventDefault();
             const errors = this.validateForm();
             if (errors.length != 0) {
                 this.displayMessage(errors[0], false);
             } else {
+                console.log(this.secretPassword.value);
+                console.log(this.secretInput.value);
+                console.log(this.secretName.value);
                 ipcRenderer.send("writeSecret", new CreateSecretDTO(
                     this.secretName.value.trim(),
                     this.secretInput.value,

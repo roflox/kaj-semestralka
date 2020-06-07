@@ -108,6 +108,7 @@ class Main {
   }
 
   public writeData(secret: CreateSecretDTO): ResponseSchema {
+    console.log(secret);
     this.encryptSecret(secret);
     this.checkDirectoryAndFiles();
     const json: RequestSchema = JSON.parse(
@@ -147,7 +148,10 @@ class Main {
         return secret;
       }
     }) as CreateSecretDTO;
+    console.log(secret);
+    console.log(request.password);
     const decrypted = this.decryptSecret(secret, request.password);
+    console.log(decrypted);
     if(!decrypted){
       return {id:secret.id,secret:null,correct:false}
     }

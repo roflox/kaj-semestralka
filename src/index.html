@@ -3,10 +3,6 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Keychain</title>
-    <!--        <link-->
-    <!--          href="node_modules/bootstrap/dist/css/bootstrap.min.css"-->
-    <!--          rel="stylesheet"-->
-    <!--        />-->
     <link href="index.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
@@ -41,7 +37,7 @@
                 Secret name:
             </label>
             <input
-                    class="form-control form-control-sm form-control-plaintext"
+                    class="form-control"
                     id="secret-name"
                     type="text"
             />
@@ -55,7 +51,7 @@
             >Secret:</label
             >
             <input
-                    class="form-control form-control-sm"
+                    class="form-control"
                     id="secret-secret"
                     type="text"
             />
@@ -64,11 +60,11 @@
             >
         </div>
         <div class="form-group row">
-            <label for="secret-password" class="col-sm-2 col-form-label"
+            <label for="secret-password"
             >Password:</label
             >
             <input
-                    class="form-control form-control-sm"
+                    class="form-control"
                     id="secret-password"
                     type="password"
             />
@@ -77,22 +73,19 @@
             >
         </div>
         <div class="form-group row">
-            <label for="secret-password-ag" class="col-sm-2 col-form-label"
+            <label for="secret-password-ag"
             >Repeat password:</label
             >
             <input
-                    class="form-control form-control-sm"
+                    class="form-control"
                     id="secret-password-ag"
                     type="password"
             />
         </div>
         <div class="form-group">
-            <input
-                    id="save-secret"
-                    value="Save"
-                    type="button"
-                    class="btn btn-primary"
-            />
+            <button id="save-secret" class="success">
+                Save
+            </button>
         </div>
         <p id="user-info-bar"></p>
     </form>
