@@ -239,6 +239,7 @@ class Renderer {
             const secretDiv = document.getElementById(`secret${response.id}`);
             const parent = secretDiv.parentElement;
             parent.removeChild(secretDiv);
+            this.secretValues = this.secretValues.filter((secret)=>{return secret.id!=response.id});
         }
     }
 

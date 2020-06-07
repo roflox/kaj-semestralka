@@ -121,6 +121,7 @@ class Main {
       fs.readFileSync(this.appDataFilePath).toString()
     );
     secret.id = this.getLastId();
+    delete secret.password
     json.secrets.push(secret);
     fs.writeFileSync(this.appDataFilePath, JSON.stringify(json));
     for (const secret of json.secrets) {
@@ -139,9 +140,9 @@ class Main {
 
   private decryptSecret(secret: CreateSecretDTO, password: string) {
     const tmp = crypto.SHA256(password).toString(crypto.enc.Hex);
-    if (tmp !== secret.password) {
-      return null;
-    }
+    // if (tmp !== secret.password) {
+    //   return null;
+    // }
     return crypto.AES.decrypt(secret.secret, tmp).toString(crypto.enc.Utf8);
   }
 
